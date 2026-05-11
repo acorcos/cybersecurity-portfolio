@@ -30,7 +30,7 @@ I am currently developing my career towards cybersecurity presales and solution 
 
 \- Firewall management
 
-\- Endpoint protection
+\- Endpoint protection and EDR operations
 
 \- Cloud security operations
 
@@ -118,7 +118,7 @@ Key areas of experience include:
 
 
 
-My current cybersecurity focus includes:
+My cybersecurity and infrastructure security experience includes:
 
 
 
@@ -149,6 +149,34 @@ My current cybersecurity focus includes:
 \- IT governance
 
 \- Incident response basics
+
+
+
+\### Endpoint Protection and EDR
+
+
+
+Practical experience with endpoint protection and EDR-related operations, including Trend Micro, Kaspersky and Check Point Harmony.
+
+
+
+Activities included solution evaluation, implementation support, migration, monitoring, alert follow-up and operational security analysis.
+
+
+
+\### Cloud Security Operations
+
+
+
+Practical experience with cloud security operations, especially in Microsoft 365 environments, including suspicious access review, unusual login analysis, account behaviour monitoring, cloud protection alerts and security follow-up.
+
+
+
+\### Firewall and Network Security
+
+
+
+Practical experience with firewall and network security operations, including Fortinet FortiGate firewalls, VPNs, IPsec tunnels, VLANs, network segmentation and secure connectivity between distributed sites.
 
 
 
