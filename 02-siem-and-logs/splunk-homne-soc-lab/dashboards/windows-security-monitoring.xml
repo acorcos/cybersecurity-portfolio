@@ -1,0 +1,510 @@
+<dashboard version="1.1" theme="dark">
+  <label>Windows Security Monitoring</label>
+
+  <row id="dashboard_style">
+    <panel>
+      <html>
+        <style>
+          #dashboard_style {
+            display: none;
+          }
+
+          #win_header {
+            background-color: #101f33 !important;
+            padding: 8px;
+          }
+
+          #win_header .dashboard-panel {
+            background-color: #162a44 !important;
+            border: 1px solid #284c75 !important;
+          }
+
+          #win_header h1 {
+            color: #7ec8ff !important;
+          }
+
+          #summary_cards {
+            background-color: #171f36 !important;
+            padding: 6px;
+          }
+
+          #summary_cards .dashboard-panel {
+            background-color: #222b45 !important;
+            border: 1px solid #3b4a70 !important;
+          }
+
+          #login_activity,
+          #login_tables {
+            background-color: #102638 !important;
+            padding: 6px;
+          }
+
+          #login_activity .dashboard-panel,
+          #login_tables .dashboard-panel {
+            background-color: #162f45 !important;
+            border: 1px solid #214a68 !important;
+          }
+
+          #out_of_hours,
+          #out_of_hours_table {
+            background-color: #332410 !important;
+            padding: 6px;
+          }
+
+          #out_of_hours .dashboard-panel,
+          #out_of_hours_table .dashboard-panel {
+            background-color: #463118 !important;
+            border: 1px solid #7a5525 !important;
+          }
+
+          #critical_cards,
+          #critical_tables {
+            background-color: #351616 !important;
+            padding: 6px;
+          }
+
+          #critical_cards .dashboard-panel,
+          #critical_tables .dashboard-panel {
+            background-color: #461d1d !important;
+            border: 1px solid #7a2c2c !important;
+          }
+        </style>
+      </html>
+    </panel>
+  </row>
+
+  <row id="win_header">
+    <panel>
+      <html>
+        <h1 style="text-align:center;">Windows Security Monitoring</h1>
+        <p style="text-align:center;">Authentication activity, failed logins, out-of-hours access, privileged logons and high-risk Windows security events</p>
+      </html>
+    </panel>
+  </row>
+
+  <row id="summary_cards">
+    <panel>
+      <title>Total Security Events 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-24h
+| stats count as total_events
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">total_events</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1000,5000,10000]</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Successful Logins 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4624 earliest=-24h
+| stats count as successful_logins
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">successful_logins</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[50,200,500]</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Logins 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625 earliest=-24h
+| stats count as failed_logins
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">failed_logins</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,5,20]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Out-of-hours Logins 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4624 earliest=-24h
+| eval hour_num=tonumber(strftime(_time,"%H"))
+| eval weekday=strftime(_time,"%A")
+| where hour_num&lt;8 OR hour_num&gt;=18 OR weekday="Saturday" OR weekday="Sunday"
+| stats count as out_of_hours_logins
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">out_of_hours_logins</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,20,100]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>High-Risk Events 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-24h EventCode IN (1102,4720,4726,4728,4732,4740)
+| stats count as high_risk_events
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">high_risk_events</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,3,10]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row id="login_activity">
+    <panel>
+      <title>Successful vs Failed Logins Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-7d (EventCode=4624 OR EventCode=4625)
+| eval event_type=case(
+    EventCode=4624,"Successful Login",
+    EventCode=4625,"Failed Login"
+)
+| timechart span=1h count by event_type
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.axisTitleY.text">Events</option>
+        <option name="charting.seriesColors">["0x53a051","0xdc4e41"]</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Login and Logout Activity Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-7d (EventCode=4624 OR EventCode=4634)
+| eval event_type=case(
+    EventCode=4624,"Login",
+    EventCode=4634,"Logout"
+)
+| timechart span=1h count by event_type
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.axisTitleY.text">Events</option>
+        <option name="charting.seriesColors">["0x1f77b4","0x7ec8ff"]</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row id="login_tables">
+    <panel>
+      <title>Top Users by Successful Login</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4624 earliest=-24h
+| eval username=coalesce(Account_Name, TargetUserName, SubjectUserName, user, AccountName)
+| where isnotnull(username) AND username!="-" AND username!="" AND NOT like(username,"%$")
+| stats count as logins by username
+| sort - logins
+| head 10
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Top Users by Failed Login</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625 earliest=-24h
+| eval username=coalesce(Account_Name, TargetUserName, SubjectUserName, user, AccountName)
+| where isnotnull(username) AND username!="-" AND username!="" AND NOT like(username,"%$")
+| stats count as failed_logins by username
+| sort - failed_logins
+| head 10
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Top Source IPs for Failed Logins</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625 earliest=-24h
+| eval host_label=case(
+    host=="ACS_PC_COPS_02","WIN-SOC-LAB-01",
+    host=="ACS_PC_OPS_02","WIN-SOC-LAB-01",
+    true(),host
+)
+| eval source_ip=coalesce(Source_Network_Address, IpAddress, Workstation_Name, host_label)
+| stats count as failed_logins by source_ip
+| sort - failed_logins
+| head 10
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row id="out_of_hours">
+    <panel>
+      <title>Out-of-hours Logins Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4624 earliest=-7d
+| eval hour_num=tonumber(strftime(_time,"%H"))
+| eval weekday=strftime(_time,"%A")
+| where hour_num&lt;8 OR hour_num&gt;=18 OR weekday="Saturday" OR weekday="Sunday"
+| timechart span=1h count as "Out-of-hours Logins"
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleY.text">Logins</option>
+        <option name="charting.seriesColors">["0xf8be34"]</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row id="out_of_hours_table">
+    <panel>
+      <title>Recent Out-of-hours Login Events</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4624 earliest=-7d
+| eval hour_num=tonumber(strftime(_time,"%H"))
+| eval weekday=strftime(_time,"%A")
+| where hour_num&lt;8 OR hour_num&gt;=18 OR weekday="Saturday" OR weekday="Sunday"
+| eval Time=strftime(_time,"%d/%m/%Y %H:%M:%S")
+| eval host_label=case(
+    host=="ACS_PC_COPS_02","WIN-SOC-LAB-01",
+    host=="ACS_PC_OPS_02","WIN-SOC-LAB-01",
+    true(),host
+)
+| eval username=coalesce(Account_Name, TargetUserName, SubjectUserName, user, AccountName)
+| eval source_ip=coalesce(Source_Network_Address, IpAddress, Workstation_Name, host_label)
+| table Time host_label username source_ip Logon_Type
+| sort - Time
+| head 20
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row id="critical_cards">
+    <panel>
+      <title>Audit Log Cleared 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=1102 earliest=-24h
+| stats count as audit_log_cleared
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">audit_log_cleared</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,2,5]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Privileged Logons 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4672 earliest=-24h
+| stats count as privileged_logons
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">privileged_logons</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,100,500]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Account Lockouts 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4740 earliest=-24h
+| stats count as account_lockouts
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">account_lockouts</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,3,10]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>User / Group Changes 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-24h EventCode IN (4720,4726,4728,4732)
+| stats count as user_group_changes
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">user_group_changes</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,3,10]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row id="critical_tables">
+    <panel>
+      <title>High-Risk Security Events</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-7d EventCode IN (1102,4720,4726,4728,4732,4740)
+| eval Time=strftime(_time,"%d/%m/%Y %H:%M:%S")
+| eval host_label=case(
+    host=="ACS_PC_COPS_02","WIN-SOC-LAB-01",
+    host=="ACS_PC_OPS_02","WIN-SOC-LAB-01",
+    true(),host
+)
+| eval username=coalesce(Account_Name, TargetUserName, SubjectUserName, user, AccountName)
+| eval event_description=case(
+    EventCode=1102,"Audit Log Cleared",
+    EventCode=4720,"User Account Created",
+    EventCode=4726,"User Account Deleted",
+    EventCode=4728,"User Added to Privileged Group",
+    EventCode=4732,"User Added to Local Group",
+    EventCode=4740,"Account Locked Out",
+    true(),"Other High-Risk Event"
+)
+| table Time host_label EventCode event_description username
+| sort - Time
+| head 30
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">30</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Recent Privileged Logons</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" earliest=-24h EventCode=4672
+| eval Time=strftime(_time,"%d/%m/%Y %H:%M:%S")
+| eval host_label=case(
+    host=="ACS_PC_COPS_02","WIN-SOC-LAB-01",
+    host=="ACS_PC_OPS_02","WIN-SOC-LAB-01",
+    true(),host
+)
+| eval username=coalesce(Account_Name, TargetUserName, SubjectUserName, user, AccountName)
+| table Time host_label EventCode username
+| sort - Time
+| head 30
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">30</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

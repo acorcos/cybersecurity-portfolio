@@ -1,0 +1,348 @@
+<dashboard version="1.1" theme="dark">
+  <label>Network Monitoring - WAN and LAN</label>
+
+  <row id="dashboard_style">
+    <panel>
+      <html>
+        <style>
+          /* WAN zone */
+          #wan_header,
+          #wan_cards,
+          #wan_graphs {
+            background-color: #0f2538 !important;
+            padding: 6px;
+          }
+
+          #wan_header .dashboard-panel,
+          #wan_cards .dashboard-panel,
+          #wan_graphs .dashboard-panel {
+            background-color: #162f45 !important;
+            border: 1px solid #214a68 !important;
+          }
+
+          /* LAN zone */
+          #lan_header,
+          #lan_cards,
+          #lan_cards_2,
+          #lan_anomalies {
+            background-color: #102b24 !important;
+            padding: 6px;
+          }
+
+          #lan_header .dashboard-panel,
+          #lan_cards .dashboard-panel,
+          #lan_cards_2 .dashboard-panel,
+          #lan_anomalies .dashboard-panel {
+            background-color: #18382f !important;
+            border: 1px solid #2f5f50 !important;
+          }
+
+          /* Titles */
+          #wan_header h1 {
+            color: #7ec8ff !important;
+          }
+
+          #lan_header h1 {
+            color: #7ff0c1 !important;
+          }
+
+          /* Hide style row visual space */
+          #dashboard_style {
+            display: none;
+          }
+        </style>
+      </html>
+    </panel>
+  </row>
+
+  <row id="wan_header">
+    <panel>
+      <html>
+        <h1 style="text-align:center;">WAN Monitoring</h1>
+        <p style="text-align:center;">Internet status, latency and packet loss</p>
+      </html>
+    </panel>
+  </row>
+
+  <row id="wan_cards">
+    <panel>
+      <title>WAN Status</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor
+| rex "packet_loss=(?&lt;packet_loss&gt;\d+)%"
+| rex "avg_latency=(?&lt;avg_latency&gt;[\d\.]+)ms"
+| eval packet_loss=tonumber(packet_loss)
+| eval avg_latency=tonumber(avg_latency)
+| sort - _time
+| head 1
+| eval status=case(
+    packet_loss=100, "OFFLINE",
+    packet_loss&gt;0, "DEGRADED",
+    avg_latency&gt;100, "HIGH LATENCY",
+    true(), "ONLINE"
+)
+| table status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">status</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Last WAN Check</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor
+| sort - _time
+| head 1
+| eval last_check=strftime(_time, "%d/%m/%Y %H:%M:%S")
+| table last_check
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Current Packet Loss</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor
+| rex "packet_loss=(?&lt;packet_loss&gt;\d+)%"
+| eval packet_loss=tonumber(packet_loss)
+| sort - _time
+| head 1
+| table packet_loss
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">packet_loss</option>
+        <option name="unit">%</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[1,5,20]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Current Latency</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor
+| rex "avg_latency=(?&lt;avg_latency&gt;[\d\.]+)ms"
+| eval avg_latency=round(tonumber(avg_latency),2)
+| sort - _time
+| head 1
+| table avg_latency
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">avg_latency</option>
+        <option name="unit">ms</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeValues">[30,80,150]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Peak Latency 24h</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor earliest=-24h
+| rex "avg_latency=(?&lt;avg_latency&gt;[\d\.]+)ms"
+| eval avg_latency=tonumber(avg_latency)
+| stats max(avg_latency) as max_latency
+| eval max_latency=round(max_latency,2)
+| eval max_latency=max_latency . " ms"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row id="wan_graphs">
+    <panel>
+      <title>WAN Latency and Packet Loss</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype=wan_monitor
+| rex "packet_loss=(?&lt;packet_loss&gt;\d+)%"
+| rex "avg_latency=(?&lt;avg_latency&gt;[\d\.]+)ms"
+| eval packet_loss=tonumber(packet_loss)
+| eval avg_latency=round(tonumber(avg_latency),2)
+| timechart span=5m avg(avg_latency) as "Latency ms" avg(packet_loss) as "Packet Loss %"
+          </query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisTitleY.text">Latency / Packet Loss</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.seriesColors">["0x1f77b4","0xdc4e41"]</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row id="lan_header">
+    <panel>
+      <html>
+        <h1 style="text-align:center;">LAN Monitoring</h1>
+        <p style="text-align:center;">Internal device status and wireless anomalies</p>
+      </html>
+    </panel>
+  </row>
+
+  <row id="lan_cards">
+    <panel>
+      <title>CloudKey</title>
+      <single>
+        <search>
+          <query>
+index=unifi earliest=-10m host="unifi-cloudkey"
+| stats latest(_time) as last_seen
+| eval age=now()-last_seen
+| eval status=if(isnull(last_seen) OR age&gt;600,"OFFLINE","ONLINE")
+| table status
+          </query>
+          <earliest>-10m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="field">status</option>
+        <option name="height">120</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>AP Living Room</title>
+      <single>
+        <search>
+          <query>
+index=unifi earliest=-10m host="AP_LIVING_ROOM_IP"
+| stats latest(_time) as last_seen
+| eval age=now()-last_seen
+| eval status=if(isnull(last_seen) OR age&gt;600,"OFFLINE","ONLINE")
+| table status
+          </query>
+          <earliest>-10m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">status</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>AP Office</title>
+      <single>
+        <search>
+          <query>
+index=unifi earliest=-10m host="AP_OFFICE_IP"
+| stats latest(_time) as last_seen
+| eval age=now()-last_seen
+| eval status=if(isnull(last_seen) OR age&gt;600,"OFFLINE","ONLINE")
+| table status
+          </query>
+          <earliest>-10m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">status</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>AP Bedroom</title>
+      <single>
+        <search>
+          <query>
+index=unifi earliest=-10m host="AP_BEDROOM_IP"
+| stats latest(_time) as last_seen
+| eval age=now()-last_seen
+| eval status=if(isnull(last_seen) OR age&gt;600,"OFFLINE","ONLINE")
+| table status
+          </query>
+          <earliest>-10m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="field">status</option>
+        <option name="height">120</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row id="lan_anomalies">
+    <panel>
+      <title>LAN - Wireless Anomalies by AP</title>
+      <chart>
+        <search>
+          <query>
+index=unifi earliest=-24h host IN ("AP_LIVING_ROOM_IP","AP_OFFICE_IP","AP_BEDROOM_IP") "anomalies="
+| rex "anomalies=(?&lt;anomaly&gt;[^\s]+)"
+| eval dispositivo=case(
+    host=="AP_LIVING_ROOM_IP","AP Living Room",
+    host=="AP_OFFICE_IP","AP Office",
+    host=="AP_BEDROOM_IP","AP Bedroom",
+    true(),host
+)
+| timechart span=30m count by dispositivo
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.axisTitleY.text">Anomalies</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>
