@@ -6,7 +6,8 @@ This document lists cybersecurity, cloud security, governance and IT-related cer
 
 ## Cybersecurity
 
-- Google Cybersecurity Certificate - 2026
+- Google Foundations of Cybersecurity - 2026
+- Google Play It Safe: Manage Security Risks - 2026
 - Cybersecurity Risk Management in Organizations - NAU - 2026
 
 ---
